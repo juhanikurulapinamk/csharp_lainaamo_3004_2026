@@ -129,7 +129,7 @@ namespace API.Services
             }
 
             
-            
+            Console.WriteLine("#############tokenKey " + tokenKey);
             // SymmetricSecurityKey on tyyppi, jossa jwt:n luonnissa
             // ja jwtn tarkistuksessa käytetään samaa avainta (TokenKey)
             // string pitää muuttaa byte[] arrayksi

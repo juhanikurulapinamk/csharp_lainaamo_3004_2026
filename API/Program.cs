@@ -36,6 +36,24 @@ builder.Services.AddSwaggerGen();
 
 
 
+
+builder.Services.AddDbContext<DataContext>(opt =>
+{
+    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IItemService, ItemService>();
+
+
+
+builder.Services.AddScoped<IUserService, UserService>();
+// PasswordHasher on tilaton, joten se voi olla singleton
+builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
+
+
+
+
 // yläpuolella: var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o =>
 {
@@ -62,24 +80,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
      o.MapInboundClaims = false;
 
 });
-
-
-builder.Services.AddDbContext<DataContext>(opt =>
-{
-    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
-});
-
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IItemService, ItemService>();
-
-
-
-builder.Services.AddScoped<IUserService, UserService>();
-// PasswordHasher on tilaton, joten se voi olla singleton
-builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
-
-
-
 
 
 
