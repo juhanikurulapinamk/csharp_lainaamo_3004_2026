@@ -3,6 +3,7 @@
 using API.CustomExceptions;
 using API.Dtos;
 using API.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -11,6 +12,52 @@ namespace API.Controllers
     [Route("api/[controller]")]
     public class UsersController(IUserService _userService) : ControllerBase
     {
+
+        
+        // kun attribuutille ei anneta parametria, niin käytetään controllerin roottia. esim: http://localhost:5108/api/users
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
+        {
+            var users = await _userService.GetAll();
+            var userDtos = new List<UserDto>();
+            
+            
+            foreach (var user in users)
+            {
+                userDtos.Add(new UserDto
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    Role = user.Role
+                });
+            }
+
+            return Ok(userDtos);
+
+        }
+
+
+        
+        // UsersController.cs, Register-actionin alle
+
+        [HttpPost("login")]
+        public async Task<ActionResult<LoginRes>> Login(LoginReq requestData)
+        {
+            try
+            {
+                var token = await _userService.Login(requestData.UserName, requestData.Password);
+
+                return new LoginRes { Token = token };
+            }
+            catch (NotFoundException e)
+            {
+                // Sama vastaus sekä tuntemattomalle käyttäjälle että väärälle salasanalle,
+                // jotta vastauksesta ei voi päätellä, mitkä käyttäjänimet ovat olemassa
+                return NotFound(new { title = "user not found", detail = e.Message });
+            }
+        }
+
         [HttpPost("register")]
         
         public async Task<ActionResult<RegisterRes>> Register(RegisterReq requestData)
