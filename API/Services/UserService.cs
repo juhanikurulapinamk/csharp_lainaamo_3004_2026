@@ -16,7 +16,7 @@ namespace API.Services
     // kun nyt käytämme EF Corea, pystymme injektoimaan serviceen
     // suoraan DataContextin ja käyttää sitä repositoryna
     // DataContext on jo rekisteröity aiemmin käyttäen AddDbContext-metodia Program.cs-filussa
-    public class UserService(DataContext _repository, IPasswordHasher<AppUser> _passwordHasher, IConfiguration _config) : IUserService
+    public class UserService(DataContext _repository, IPasswordHasher<AppUser> _passwordHasher, ITokenTool _tokenTool) : IUserService
     {
 
 
@@ -94,18 +94,19 @@ namespace API.Services
             return users;
         }
 
+        
         public async Task<string> Login(string username, string password)
         {
-            
+
             var user = await GetByUserName(username);
+
             if (user == null)
             {
                 throw new NotFoundException("user not found");
             }
 
             // VerifyHashedPassword lukee tallennetusta hashista saltin ja asetukset,
-            // laskee samoilla asetuksilla hashin annetusta salasanasta ja vertaa niitä.
-            // Vertailu on sisäisesti vakioaikainen, joten ajastushyökkäys ei onnistu.
+            // laskee samoilla asetuksilla hashin annetusta salasanasta ja vertaa niitä
             var verifyResult = _passwordHasher.VerifyHashedPassword(user, user.HashedPassword, password);
 
             if (verifyResult == PasswordVerificationResult.Failed)
@@ -113,49 +114,10 @@ namespace API.Services
                 throw new NotFoundException("user not found");
             }
 
-            // Jos käyttäjä löytyy ja salasana on oikein,
-            // luodaan JWT käyttäjän tunnistamista varten 
-
-            var tokenKey = _config["TokenKey"];
-            if (tokenKey == null)
-            {
-                throw new Exception("token key not set");
-            }
-
-            // varmista myös, että TokenKey on tarpeeksi pitkä
-            if (tokenKey.Length < 64)
-            {
-                throw new Exception("invalid token key, must be at least 64 characters in length");
-            }
-
+            // tokenin luonti on tämän takana
+            var token = _tokenTool.CreateToken(user);
+            return token;
             
-            Console.WriteLine("#############tokenKey " + tokenKey);
-            // SymmetricSecurityKey on tyyppi, jossa jwt:n luonnissa
-            // ja jwtn tarkistuksessa käytetään samaa avainta (TokenKey)
-            // string pitää muuttaa byte[] arrayksi
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey));
-            // jwt:n allekirjoitus tehdään avainta käyttäen
-            // HMACSha512-algoritimillä
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
-
-            // tässä jwt:n sisään laitettavat käyttäjää koskevat asiat
-            // Sub = käyttäjän id
-            // Name = käyttäjänimi
-            // Jti = random merkkijono
-            var claims = new List<Claim> {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Name, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.Role, user.Role)
-
-            };
-            // luodaan token claimit on yo. tiedot, jotka menevät sisään
-            // expires on voimassaoloaika (tässä viikko)
-            // SigningCredentials on allekirjoitus joka luotiin ylempänä
-            var _token = new JwtSecurityToken(claims: claims, expires: DateTime.UtcNow.AddDays(7), signingCredentials: credentials);
-            // tässä tehdään tokenista base64 enkoodattu merkkijono
-            // tämä voidaan antaa käyttäjälle kirjautumisen jälkeen
-            return new JwtSecurityTokenHandler().WriteToken(_token);
                 
 
         }

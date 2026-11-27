@@ -7,6 +7,7 @@ using API.Data;
 using API.Interfaces;
 using API.Models;
 using API.Services;
+using API.Tools;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -80,6 +81,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
      o.MapInboundClaims = false;
 
 });
+
+
+builder.Services.AddScoped<ITokenTool, SymmetricTokenTool>();
 
 
 
