@@ -78,6 +78,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
        
     };
 
+    // Oletuksena JwtBearer muuttaa tokenin lyhyet claim-nimet (esim. "sub", "email", "role")
+    // pitkiksi Microsoftin URI-muotoisiksi nimiksi, kuten
+    // "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier".
+    // Kun MapInboundClaims = false, claimit säilyvät täsmälleen sellaisina kuin ne ovat tokenissa,
+    // joten esim. User.FindFirst("sub") löytää arvon suoraan ilman muunnettua nimeä.
      o.MapInboundClaims = false;
 
 });
