@@ -121,5 +121,21 @@ namespace API.Services
                 
 
         }
+
+        
+        public async Task<AppUser> SetRole(int userId, string role)
+        {
+            var user = await _repository.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                throw new NotFoundException($"user {userId} not found");
+            }
+
+            user.Role = role;
+            await _repository.SaveChangesAsync();
+
+            return user;
+        }
     }
 }

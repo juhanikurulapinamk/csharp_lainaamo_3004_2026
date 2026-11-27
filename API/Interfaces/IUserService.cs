@@ -12,5 +12,8 @@ namespace API.Interfaces
 
         
         Task<IEnumerable<AppUser>> GetAll();
+
+        
+        Task<AppUser> SetRole(int userId, string role);
     }
 }

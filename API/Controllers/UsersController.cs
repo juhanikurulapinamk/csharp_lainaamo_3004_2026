@@ -86,5 +86,23 @@ namespace API.Controllers
                 );
             }
         }
+
+        
+// PUT api/users/5/role
+        [HttpPut("{id}/role")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<ActionResult<UserDto>> SetRole(int id, SetRoleReq req)
+        {
+            try
+            {
+                var user = await _userService.SetRole(id, req.Role);
+
+                return Ok(_mapper.Map<UserDto>(user));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(new { title = "user not found", detail = e.Message });
+            }
+        }
     }
 }
