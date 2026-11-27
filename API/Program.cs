@@ -91,6 +91,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 builder.Services.AddScoped<ITokenTool, SymmetricTokenTool>();
 
 
+// yläpuolella automapper
+builder.Services.AddAuthorization(option =>
+{
+    option.AddPolicy("RequireAdminRole", policy => policy.RequireRole("admin"));
+});
+
+
+// AutoMapper 15:stä lähtien ensimmäinen parametri on konfiguraatiofunktio.
+// Tyhjä cfg => { } riittää, koska profiilit haetaan typeof(Program)-assemblysta.
+builder.Services.AddAutoMapper(cfg => { }, typeof(Program));
 
 var app = builder.Build();
 

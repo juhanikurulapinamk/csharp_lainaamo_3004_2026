@@ -2,13 +2,14 @@
 using API.CustomExceptions;
 using API.Dtos;
 using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CategoriesController(ICategoryService _categoryService) : ControllerBase
+    public class CategoriesController(ICategoryService _categoryService, IMapper _mapper) : ControllerBase
     {
         // GET api/categories
         [HttpGet]
@@ -17,11 +18,7 @@ namespace API.Controllers
             var categories = await _categoryService.GetAll();
 
             // Muunnetaan modelit DTO:iksi
-            var dtos = categories.Select(c => new CategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name
-            });
+           var dtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
 
             return Ok(dtos);
         }

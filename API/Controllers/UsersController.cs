@@ -3,6 +3,8 @@
 using API.CustomExceptions;
 using API.Dtos;
 using API.Interfaces;
+using API.Models;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,28 +12,20 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController(IUserService _userService) : ControllerBase
+    public class UsersController(IUserService _userService, IMapper _mapper) : ControllerBase
     {
 
         
         // kun attribuutille ei anneta parametria, niin käytetään controllerin roottia. esim: http://localhost:5108/api/users
         [HttpGet]
-        [Authorize]
+        [Authorize(Policy = "RequireAdminRole")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
         {
             var users = await _userService.GetAll();
-            var userDtos = new List<UserDto>();
+            var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
             
             
-            foreach (var user in users)
-            {
-                userDtos.Add(new UserDto
-                {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Role = user.Role
-                });
-            }
+            
 
             return Ok(userDtos);
 
