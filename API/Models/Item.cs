@@ -20,5 +20,9 @@ namespace API.Models
         
 
         public ICollection<ItemCopy> Copies { get; set; } = new List<ItemCopy>();
+
+        
+        // Item.cs
+        public ICollection<Tag> Tags { get; set; } = new List<Tag>();
     }
 }

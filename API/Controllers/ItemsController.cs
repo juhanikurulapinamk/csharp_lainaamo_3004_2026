@@ -62,6 +62,22 @@ public class ItemsController(IItemService _itemService, IMapper _mapper) : Contr
         }
     }
 
+    // POST api/items
+    [HttpPost]
+    public async Task<ActionResult<ItemDto>> Create(CreateItemReq req)
+    {
+        try
+        {
+            var item = await _itemService.Create(req);
+
+            return CreatedAtAction(nameof(GetById), new { id = item.Id }, _mapper.Map<Item, ItemDto>(item));
+        }
+        catch (NotFoundException e)
+        {
+            return NotFound(new { title = "category not found", detail = e.Message });
+        }
+    }
+
     
 
     

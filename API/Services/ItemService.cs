@@ -35,9 +35,50 @@ public class ItemService(DataContext _repository) : IItemService
         return copy;
     }
 
-    public Task<Item> Create(CreateItemReq requestData)
+    
+    public async Task<Item> Create(CreateItemReq requestData)
     {
-        throw new NotImplementedException();
+        var categoryExists = await _repository.Categories
+            .AnyAsync(c => c.Id == requestData.CategoryId);
+
+        if (!categoryExists)
+        {
+            throw new NotFoundException($"category {requestData.CategoryId} not found");
+        }
+
+        // 1. Haetaan ne tagit, jotka ovat jo tietokannassa
+        var existingTags = await _repository.Tags
+            .Where(tag => requestData.Tags.Contains(tag.TagText))
+            .ToListAsync();
+
+        // 2. Selvitetään, mitkä ovat uusia.
+        // Except palauttaa jokaisen arvon vain kerran, joten saman tagin
+        // antaminen pyynnössä kahdesti ei luo kahta samannimistä tagia.
+        var existingTexts = existingTags.Select(t => t.TagText).ToList();
+        var newTexts = requestData.Tags.Except(existingTexts).ToList();
+
+        // 3. Luodaan uudet
+        var newTags = newTexts.Select(text => new Tag { TagText = text }).ToList();
+        await _repository.Tags.AddRangeAsync(newTags);
+
+        // 4. Liitetään sekä vanhat että uudet nimikkeeseen
+        var allTags = existingTags.Concat(newTags).ToList();
+
+        var item = new Item
+        {
+            Name = requestData.Name,
+            Description = requestData.Description,
+            CategoryId = requestData.CategoryId,
+            Tags = allTags
+        };
+
+        await _repository.Items.AddAsync(item);
+
+        // Yksi SaveChangesAsync tallentaa sekä uudet tagit,
+        // nimikkeen että välitaulurivit — kaikki samassa transaktiossa
+        await _repository.SaveChangesAsync();
+
+        return await GetById(item.Id);
     }
 
     public async Task<IEnumerable<Item>> GetAll()
@@ -47,6 +88,7 @@ public class ItemService(DataContext _repository) : IItemService
         .Items
         .Include(i => i.Category)
         .Include(i => i.Copies)
+        .Include(i => i.Tags)
         .ToListAsync();
     }
 
@@ -55,6 +97,7 @@ public class ItemService(DataContext _repository) : IItemService
         var item = await _repository.Items
             .Include(i => i.Category)
             .Include(i => i.Copies)
+            .Include(i => i.Tags)
             .FirstOrDefaultAsync(i => i.Id == id);
 
         if (item == null)

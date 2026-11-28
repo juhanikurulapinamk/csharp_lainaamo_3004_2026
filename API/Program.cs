@@ -53,6 +53,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddSingleton<IPasswordHasher<AppUser>, PasswordHasher<AppUser>>();
 
 
+builder.Services.AddScoped<ILoanService, LoanService>();
+
+
 
 
 // yläpuolella: var builder = WebApplication.CreateBuilder(args);
@@ -89,6 +92,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 
 
 builder.Services.AddScoped<ITokenTool, SymmetricTokenTool>();
+
+// Program.cs
+builder.Services.AddSingleton<IFineCalculatorFactory, FineCalculatorFactory>();
 
 
 // yläpuolella automapper

@@ -16,5 +16,7 @@ namespace API.Dtos
         // Range varmistaa, että kategorian id on annettu.
         [Range(1, int.MaxValue)]
         public int CategoryId { get; set; }
+
+        public List<string> Tags { get; set; } = [];
     }
 }

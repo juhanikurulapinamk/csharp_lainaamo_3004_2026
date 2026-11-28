@@ -13,5 +13,8 @@ namespace API.Models
 
         public int ItemId { get; set; }
         public Item? Item { get; set; }
+
+        // ItemCopy.cs
+        public ICollection<Loan> Loans { get; set; } = new List<Loan>();
     }
 }

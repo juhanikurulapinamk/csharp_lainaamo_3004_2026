@@ -12,5 +12,9 @@ namespace API.Dtos
         public required CategoryDto Category {get; set; }
 
         public int CopyCount { get; set; }
+
+        
+        // ItemDto.cs
+        public List<TagDto> Tags { get; set; } = [];
     }
 }
